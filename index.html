@@ -1,0 +1,801 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      Pathfinding Algorithm Comparison: BFS, DFS, UCS, and A* on 2D Grid Maps
+    </title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #ffffff;
+        --surface: #f1f5f9;
+        --border: #94b8c8;
+        --text: #0b1f3a;
+        --muted: #334e6f;
+        --primary: #0d3b7a;
+        --accent: #126294;
+        --code-bg: #e2ecf2;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family:
+          "Inter",
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+        color: var(--text);
+        background-color: var(--bg);
+        line-height: 1.65;
+      }
+
+      header {
+        background-color: #0d3b7a;
+        color: #ffffff;
+        padding: 2rem 1.5rem;
+        border-bottom: 3px solid #5fa8bd;
+      }
+
+      .container {
+        max-width: 1020px;
+        margin: 0 auto;
+        padding: 0 1.25rem;
+      }
+
+      .course-meta {
+        font-size: 0.92rem;
+        color: #9ec5d6;
+        font-weight: 500;
+        margin: 0 0 0.65rem 0;
+        letter-spacing: 0.02em;
+      }
+
+      header h1 {
+        margin: 0 0 0.75rem 0;
+        font-size: 2rem;
+        line-height: 1.25;
+        font-weight: 700;
+        color: #ffffff;
+      }
+
+      .subtitle {
+        font-size: 1.05rem;
+        color: #dbe8f0;
+        margin-bottom: 1.1rem;
+      }
+
+      .members {
+        font-size: 0.95rem;
+        color: #ffffff;
+        margin: 0;
+      }
+
+      nav {
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+
+      nav .container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.75rem;
+        padding-top: 0.85rem;
+        padding-bottom: 0.85rem;
+      }
+
+      nav a {
+        text-decoration: none;
+        color: var(--muted);
+        font-size: 0.9rem;
+        font-weight: 400;
+      }
+
+      nav a:hover {
+        color: var(--primary);
+      }
+
+      main.container {
+        padding-top: 2rem;
+        padding-bottom: 4rem;
+      }
+
+      section {
+        margin-bottom: 3rem;
+        scroll-margin-top: 4.5rem;
+      }
+
+      h2 {
+        color: var(--primary);
+        font-size: 1.45rem;
+        font-weight: 700;
+        margin-top: 0;
+        margin-bottom: 1rem;
+        padding-left: 0.75rem;
+        border-left: 3.5px solid var(--accent);
+      }
+
+      h3 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text);
+        margin-top: 1.4rem;
+        margin-bottom: 0.5rem;
+      }
+
+      p {
+        margin-top: 0;
+        margin-bottom: 1rem;
+      }
+
+      ul {
+        margin-top: 0;
+        margin-bottom: 1rem;
+        padding-left: 1.4rem;
+      }
+
+      li {
+        margin-bottom: 0.45rem;
+      }
+
+      code {
+        background: var(--code-bg);
+        padding: 0.15rem 0.4rem;
+        border-radius: 4px;
+        font-family:
+          ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 0.88em;
+      }
+
+      .formula-box {
+        background: var(--surface);
+        border-left: 3px solid var(--accent);
+        padding: 0.9rem 1.1rem;
+        margin: 1rem 0;
+        border-radius: 0 6px 6px 0;
+        font-family:
+          ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 0.92rem;
+      }
+
+      .grid-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 1.1rem;
+      }
+
+      .card h3 {
+        margin-top: 0;
+        color: var(--primary);
+        font-size: 1.05rem;
+      }
+
+      .table-wrapper {
+        overflow-x: auto;
+        margin: 1.25rem 0;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.92rem;
+        text-align: center;
+      }
+
+      th,
+      td {
+        padding: 0.75rem 0.85rem;
+        border-bottom: 1px solid var(--border);
+      }
+
+      th {
+        background-color: #0d3b7a;
+        color: #ffffff;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+
+      td:first-child,
+      th:first-child {
+        text-align: left;
+        font-weight: 600;
+      }
+
+      tbody tr:nth-child(even) {
+        background-color: var(--surface);
+      }
+
+      tbody tr:last-child td {
+        border-bottom: none;
+      }
+
+      .highlight-best {
+        font-weight: 700;
+        color: #126294;
+      }
+
+      .figures-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(440px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1.25rem;
+      }
+
+      figure {
+        margin: 0;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 1rem;
+        text-align: center;
+      }
+
+      figure img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 4px;
+        border: 1px solid var(--border);
+      }
+
+      figcaption {
+        margin-top: 0.65rem;
+        font-size: 0.88rem;
+        color: var(--muted);
+      }
+
+      .links-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+
+      .btn {
+        display: inline-block;
+        background: #0d3b7a;
+        color: #ffffff;
+        text-decoration: none;
+        padding: 0.65rem 1.25rem;
+        border-radius: 6px;
+        font-weight: 500;
+        font-size: 0.95rem;
+      }
+
+      .btn-secondary {
+        background: var(--surface);
+        color: var(--text);
+        border: 1px solid var(--border);
+      }
+
+      footer {
+        background: var(--surface);
+        border-top: 1px solid var(--border);
+        padding: 1.75rem 0;
+        color: var(--muted);
+        font-size: 0.88rem;
+        text-align: center;
+      }
+
+      @media (max-width: 600px) {
+        .figures-grid {
+          grid-template-columns: 1fr;
+        }
+        header h1 {
+          font-size: 1.65rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="container">
+        <p class="course-meta">CMSC 170 | Section W-1L | Group 6</p>
+        <h1>
+          Pathfinding Algorithm Comparison: BFS, DFS, UCS, and A* on 2D Grid
+          Maps
+        </h1>
+        <p class="subtitle">
+          Comparing how four classic search algorithms find paths across 2D game
+          maps.
+        </p>
+        <p class="members">
+          <strong>Group Members:</strong> Laurence Julia Barrios, Benedict
+          Borja, Jeremias Gomez, Yshinero Norio
+        </p>
+      </div>
+    </header>
+
+    <nav>
+      <div class="container">
+        <a href="#problem">Problem &amp; Motivation</a>
+        <a href="#dataset">Dataset</a>
+        <a href="#methods">Methods</a>
+        <a href="#setup">Experimental Setup</a>
+        <a href="#results">Results</a>
+        <a href="#discussion">Discussion</a>
+        <a href="#conclusion">Conclusion</a>
+        <a href="#references">References &amp; AI</a>
+        <a href="#links">Links</a>
+      </div>
+    </nav>
+
+    <main class="container">
+      <!-- Problem Statement and Motivation -->
+      <section id="problem">
+        <h2>Problem Statement and Motivation</h2>
+        <p>
+          Finding a path from a starting point to a goal on a grid map is a core
+          problem in artificial intelligence, robotics, and video games. When a
+          map has walls and allows movement in eight directions, a good
+          pathfinding algorithm needs to find the shortest route without wasting
+          time or memory checking unnecessary tiles.
+        </p>
+        <p>
+          In this project, we built and tested four classic search algorithms
+          from scratch: <strong>Breadth-First Search (BFS)</strong>,
+          <strong>Depth-First Search (DFS)</strong>,
+          <strong>Uniform-Cost Search (UCS)</strong>, and
+          <strong>A* Search</strong>. We ran them on 156 game maps from
+          <em>Dragon Age: Origins</em> to see how well each method performs when
+          straight steps cost <code>1.0</code> and diagonal steps cost
+          <code>&radic;2 &approx; 1.4142</code>.
+        </p>
+      </section>
+
+      <!-- Dataset Description -->
+      <section id="dataset">
+        <h2>Dataset Description</h2>
+        <ul>
+          <li>
+            <strong>Source:</strong> Moving AI Pathfinding Benchmarks, using the
+            <em>Dragon Age: Origins (DAO)</em> map collection
+          </li>
+          <li>
+            <strong>Dataset Size:</strong> 156 grid map files
+            (<code>.map</code>) paired with 156 scenario files
+            (<code>.scen</code>) containing thousands of pathfinding tasks
+            across indoor rooms, narrow hallways, and open areas.
+          </li>
+          <li>
+            <strong>What Each File Contains:</strong> Each
+            <code>.map</code> file gives the grid width, height, and layout of
+            walkable floors and blocked walls. Each <code>.scen</code> file
+            lists a starting coordinate, a goal coordinate, and the true
+            shortest path cost for comparison.
+          </li>
+          <li>
+            <strong>Data Cleaning and Split:</strong> We removed any invalid
+            tasks where the start or goal tile was blocked by a wall. For each
+            map, we split the valid tasks into an
+            <strong>80% development set</strong> and a
+            <strong>20% test set</strong> using <code>RANDOM_SEED = 10</code>.
+          </li>
+        </ul>
+      </section>
+
+      <!-- Methods -->
+      <section id="methods">
+        <h2>Methods</h2>
+        <p>
+          We coded all four search algorithms in pure Python using built-in data
+          structures. Each algorithm tracks how many tiles it checks, builds the
+          final path back to the start, and adds up the exact movement cost.
+        </p>
+
+        <div class="grid-cards">
+          <div class="card">
+            <h3>Breadth-First Search (BFS)</h3>
+            <p>
+              Uses a standard queue to check tiles layer by layer. It finds the
+              path with the fewest steps, ignoring the extra cost of diagonal
+              moves.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Depth-First Search (DFS)</h3>
+            <p>
+              Uses a stack to follow one branch as deep as possible before
+              turning back. It explores quickly in one direction but does not
+              try to find the shortest path.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Uniform-Cost Search (UCS)</h3>
+            <p>
+              Uses a priority queue (<code>heapq</code>) to always expand the
+              tile with the lowest total distance traveled so far,
+              <code>g(n)</code>. This guarantees the lowest-cost path.
+            </p>
+          </div>
+          <div class="card">
+            <h3>A* Search</h3>
+            <p>
+              Uses a priority queue ordered by <code>f(n) = g(n) + h(n)</code>,
+              combining the distance traveled so far with an
+              <strong>octile distance estimate</strong> <code>h(n)</code> toward
+              the goal.
+            </p>
+          </div>
+        </div>
+
+        <div class="formula-box">
+          <strong>Octile Distance Heuristic:</strong><br />
+          h(n) = max(|x<sub>n</sub> &minus; x<sub>goal</sub>|, |y<sub>n</sub>
+          &minus; y<sub>goal</sub>|) + (&radic;2 &minus; 1) &middot; min(|x<sub
+            >n</sub
+          >
+          &minus; x<sub>goal</sub>|, |y<sub>n</sub> &minus; y<sub>goal</sub>|)
+        </div>
+      </section>
+
+      <!-- Experimental Setup -->
+      <section id="setup">
+        <h2>Experimental Setup</h2>
+        <ul>
+          <li>
+            <strong>Test Sample:</strong> We picked up to 5 test tasks from each
+            of the 156 maps using <code>RANDOM_SEED = 10</code>, giving
+            <strong>780 total test queries</strong> evaluated across all four
+            algorithms.
+          </li>
+          <li>
+            <strong>Movement Rules:</strong> Agents can move in 8 directions (4
+            straight and 4 diagonal). Straight moves cost <code>1.0</code> and
+            diagonal moves cost <code>&radic;2</code>. Agents cannot cut
+            diagonally past the corner of a wall.
+          </li>
+          <li>
+            <strong>Metrics Measured:</strong>
+            <ul>
+              <li>
+                <strong>Success Rate (%):</strong> How often the algorithm
+                successfully found a path to the goal.
+              </li>
+              <li>
+                <strong>Optimality Rate (%):</strong> How often the path cost
+                matched the true shortest cost (within
+                <code>TOLERANCE = 0.0001</code>).
+              </li>
+              <li>
+                <strong>Nodes Expanded and Generated:</strong> How many map
+                tiles the algorithm visited and added to its search list.
+              </li>
+              <li>
+                <strong>Path Length and Path Cost:</strong> Total number of
+                steps taken and the total weighted cost of those steps.
+              </li>
+              <li>
+                <strong>Runtime (ms):</strong> The median time taken across
+                <strong>3 repeated runs</strong> per task, measured with
+                <code>time.perf_counter()</code>.
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </section>
+
+      <!-- Results -->
+      <section id="results">
+        <h2>Results</h2>
+        <p>
+          The table below shows the average results across all
+          <strong>780 test queries</strong> on the 156 maps. Every algorithm
+          found a valid path 100% of the time, but they differed greatly in path
+          quality, tiles checked, and speed.
+        </p>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Algorithm</th>
+                <th>Solved</th>
+                <th>Success (%)</th>
+                <th>Avg. Expanded</th>
+                <th>Avg. Generated</th>
+                <th>Avg. Path Length</th>
+                <th>Avg. Path Cost</th>
+                <th>Optimal (%)</th>
+                <th>Avg. Runtime (ms)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>BFS</td>
+                <td>780 / 780</td>
+                <td>100.00%</td>
+                <td>12,815.46</td>
+                <td>12,882.39</td>
+                <td class="highlight-best">182.12</td>
+                <td>204.47</td>
+                <td>90.13%</td>
+                <td>24.87</td>
+              </tr>
+              <tr>
+                <td>DFS</td>
+                <td>780 / 780</td>
+                <td>100.00%</td>
+                <td>10,284.86</td>
+                <td>14,181.99</td>
+                <td>1,737.21</td>
+                <td>2,441.10</td>
+                <td>2.56%</td>
+                <td class="highlight-best">22.18</td>
+              </tr>
+              <tr>
+                <td>UCS</td>
+                <td>780 / 780</td>
+                <td>100.00%</td>
+                <td>12,802.89</td>
+                <td>12,880.84</td>
+                <td>182.27</td>
+                <td class="highlight-best">204.18</td>
+                <td class="highlight-best">100.00%</td>
+                <td>74.99</td>
+              </tr>
+              <tr>
+                <td>A*</td>
+                <td>780 / 780</td>
+                <td>100.00%</td>
+                <td class="highlight-best">5,893.80</td>
+                <td class="highlight-best">6,101.84</td>
+                <td>182.27</td>
+                <td class="highlight-best">204.18</td>
+                <td class="highlight-best">100.00%</td>
+                <td>42.33</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Performance Visualizations</h3>
+        <p>
+          These charts compare how each algorithm performs as paths get longer
+          and harder across the <code>results/</code> outputs.
+        </p>
+
+        <div class="figures-grid">
+          <figure>
+            <img
+              src="results/optimality_bar.png"
+              alt="Optimality Rate Comparison Bar Chart"
+            />
+            <figcaption>
+              <strong>Figure 1:</strong> Optimality rate (%) across all 780 test
+              queries. UCS and A* find the best path 100% of the time, BFS
+              90.13%, and DFS 2.56%.
+            </figcaption>
+          </figure>
+          <figure>
+            <img
+              src="results/nodes_expanded_bar.png"
+              alt="Nodes Expanded Comparison Bar Chart"
+            />
+            <figcaption>
+              <strong>Figure 2:</strong> Average number of tiles expanded. A*
+              checks 54% fewer tiles than UCS by aiming straight toward the
+              goal.
+            </figcaption>
+          </figure>
+          <figure>
+            <img
+              src="results/nodes_generated_bar.png"
+              alt="Nodes Generated Comparison Bar Chart"
+            />
+            <figcaption>
+              <strong>Figure 3:</strong> Average number of neighbor tiles
+              generated during the search, showing how A* avoids exploring dead
+              ends.
+            </figcaption>
+          </figure>
+          <figure>
+            <img
+              src="results/runtime_line.png"
+              alt="Execution Runtime vs Path Cost Line Plot"
+            />
+            <figcaption>
+              <strong>Figure 4:</strong> Average runtime (ms) as path difficulty
+              increases. Simple queues make BFS and DFS faster per tile than
+              priority queues.
+            </figcaption>
+          </figure>
+          <figure>
+            <img
+              src="results/path_cost_line.png"
+              alt="Path Cost Comparison Line Plot"
+            />
+            <figcaption>
+              <strong>Figure 5:</strong> Average path cost as distance grows.
+              DFS takes long, winding detours that cost nearly 12 times more
+              than optimal.
+            </figcaption>
+          </figure>
+          <figure>
+            <img
+              src="results/path_length_line.png"
+              alt="Path Length Comparison Line Plot"
+            />
+            <figcaption>
+              <strong>Figure 6:</strong> Average number of steps in the final
+              path. BFS minimizes step count, while UCS and A* minimize true
+              travel cost.
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <!-- Discussion -->
+      <section id="discussion">
+        <h2>Discussion</h2>
+        <ul>
+          <li>
+            <strong>A* vs. UCS (Same Best Path, Much Less Work):</strong> Both
+            A* and UCS found the exact shortest path
+            <strong>100% of the time</strong> (average cost of
+            <code>204.18</code>) because both carefully track real movement
+            costs. However, UCS searches blindly in all directions like a
+            spreading circle. A* uses its distance estimate to aim directly
+            toward the goal, which lets it check
+            <strong>54% fewer tiles</strong> (<code>5,893.80</code> vs.
+            <code>12,802.89</code>) and finish
+            <strong>43.6% faster</strong> (<code>42.33 ms</code> vs.
+            <code>74.99 ms</code>).
+          </li>
+          <li>
+            <strong>Why BFS Missed Almost 10% of Optimal Paths:</strong> BFS was
+            fast (<code>24.87 ms</code>) and found paths with the fewest
+            individual steps (<code>182.12</code> steps). However, BFS treats
+            every step as equal cost, forgetting that diagonal steps
+            (<code>1.414</code>) are longer than straight steps
+            (<code>1.0</code>). Because of this, it sometimes picks a route with
+            fewer diagonal steps that actually covers a longer distance,
+            dropping its optimality to <strong>90.13%</strong>.
+          </li>
+          <li>
+            <strong>Why DFS Produced Very Long Paths:</strong> DFS had the
+            fastest average time (<code>22.18 ms</code>) only because its stack
+            operations are very simple and it occasionally stumbled onto the
+            goal early in open rooms. In most maps, however, DFS wandered deep
+            into dead ends and took huge detours, creating paths averaging
+            <strong>1,737 steps</strong> (nearly 12 times worse than optimal)
+            and succeeding at finding the best path only
+            <strong>2.56% of the time</strong>.
+          </li>
+          <li>
+            <strong>Limitations and Future Improvements:</strong> Even though A*
+            checked less than half as many tiles as BFS, BFS still ran slightly
+            faster in milliseconds because Python priority queues
+            (<code>heapq</code>) take extra time to sort items compared to
+            simple lists. In the future, we could speed up A* by using
+            <strong>Jump Point Search (JPS)</strong> to skip empty open spaces
+            or running <strong>Bidirectional A*</strong> from both the start and
+            goal at the same time.
+          </li>
+        </ul>
+      </section>
+
+      <!-- Conclusion -->
+      <section id="conclusion">
+        <h2>Conclusion</h2>
+        <p>
+          Across 780 test cases on 156 <em>Dragon Age: Origins</em> maps,
+          <strong>A* Search</strong> is clearly the best overall choice for 2D
+          grid pathfinding. It guarantees the shortest path
+          <strong>100% of the time</strong> while checking far fewer map tiles
+          than UCS and BFS. BFS is a fast backup when slightly longer paths are
+          acceptable, while DFS is not suitable when path quality matters.
+        </p>
+      </section>
+
+      <!-- References & AI Disclosure -->
+      <section id="references">
+        <h2>References &amp; AI Assistance Disclosure</h2>
+        <ul>
+          <li>
+            Sturtevant, N. R. (2012). Benchmarks for grid-based pathfinding.
+            <em
+              >IEEE Transactions on Computational Intelligence and AI in
+              Games</em
+            >, 4(2), 144-148.
+            <a
+              href="https://movingai.com/benchmarks/dao/"
+              target="_blank"
+              rel="noopener"
+              >https://movingai.com/benchmarks/dao/</a
+            >
+          </li>
+          <li>
+            Hart, P. E., Nilsson, N. J., &amp; Raphael, B. (1968). A formal
+            basis for the heuristic determination of minimum cost paths.
+            <em>IEEE Transactions on Systems Science and Cybernetics</em>, 4(2),
+            100-107.
+            <a
+              href="https://doi.org/10.1109/TSSC.1968.300136"
+              target="_blank"
+              rel="noopener"
+              >https://doi.org/10.1109/TSSC.1968.300136</a
+            >
+          </li>
+          <li>
+            Witmer, N. (2013, May 5).
+            <em>A visual explanation of Jump Point Search</em>. Zerowidth.
+            <a
+              href="https://zerowidth.com/2013/a-visual-explanation-of-jump-point-search/"
+              target="_blank"
+              rel="noopener"
+              >https://zerowidth.com/2013/a-visual-explanation-of-jump-point-search/</a
+            >
+          </li>
+          <li>
+            ScienceOpen. (n.d.). <em>Bidirectional A* search</em>.
+            <a
+              href="https://www.scienceopen.com/document?vid=01e7ea4c-0956-4041-bb5c-8787ec6bed24"
+              target="_blank"
+              rel="noopener"
+              >https://www.scienceopen.com/document?vid=01e7ea4c-0956-4041-bb5c-8787ec6bed24</a
+            >
+          </li>
+          <li>
+            <strong>AI Assistance Disclosure:</strong> ChatGPT and Gemini were
+            used to help organize the repository documentation
+            (<code>README.md</code>) and format the HTML/CSS for this project
+            webpage. All pathfinding algorithms, experiments, and result
+            analyses were written and verified by Group 6.
+          </li>
+        </ul>
+      </section>
+
+      <!-- Links -->
+      <section id="links">
+        <h2>Project Links</h2>
+        <div class="links-grid">
+          <a
+            class="btn"
+            href="https://github.com/lazycoder1233/GR6_W1L_170_Project.git"
+            target="_blank"
+            rel="noopener"
+            >GitHub Repository (Source Code &amp; Results)</a
+          >
+          <a
+            class="btn btn-secondary"
+            href="https://github.com/lazycoder1233/GR6_W1L_170_Project/tree/main/results"
+            target="_blank"
+            rel="noopener"
+            >Evaluation Tables &amp; Figures</a
+          >
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container">
+        CMSC 170 Lab Project | Group 6 (Section W-1L) | University of the
+        Philippines Los Ba&ntilde;os
+      </div>
+    </footer>
+  </body>
+</html>
